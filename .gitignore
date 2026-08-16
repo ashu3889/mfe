@@ -1,0 +1,4 @@
+node_modules
+/apps/remote/dist
+/apps/shell/.next
+/share

@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  remote-mfe:
+    build:
+      context: ./remote
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    restart: always
+
+  shell-mfe:
+    build:
+      context: ./shell
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_REMOTE_MFE_URL=http://remote-mfe:80
+    depends_on:
+      - remote-mfe
+    restart: always
