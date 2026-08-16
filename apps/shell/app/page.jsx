@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense, use } from 'react';
 
 // ============================================================================
-// 1. STATIC SCOPE CONFIG (Prevents re-allocating closure objects)
+// 1. STATIC SCOPE CONFIG
 // ============================================================================
 const SHARED_SCOPE = {
   react: {
@@ -15,13 +15,20 @@ const SHARED_SCOPE = {
 };
 
 // ============================================================================
-// 2. SINGLETON PROMISE CACHE (Evaluates dynamic import EXACTLY ONCE)
+// 2. SINGLETON PROMISE CACHE
 // ============================================================================
 let remoteWidgetPromise = null;
 
 function loadRemoteWidgetOnce() {
   if (!remoteWidgetPromise) {
     remoteWidgetPromise = (async () => {
+      // During SSR / build time, return a safe fallback component
+      if (typeof window === 'undefined') {
+        return function FallbackRemote() {
+          return null;
+        };
+      }
+
       const container = await import(
         /* webpackIgnore: true */ 'http://localhost:3001/assets/remoteEntry.js'
       );
@@ -35,15 +42,26 @@ function loadRemoteWidgetOnce() {
 }
 
 // ============================================================================
-// 3. REACT 19 COMPONENT WITH SUSPENSE
+// 3. REMOTE COMPONENT WRAPPER
 // ============================================================================
 function OptimizedRemoteComponent() {
-  const Widget = use(loadRemoteWidgetOnce());
-  return <Widget />;
+  const [WidgetComponent, setWidgetComponent] = useState(null);
+
+  useEffect(() => {
+    loadRemoteWidgetOnce().then((Component) => {
+      setWidgetComponent(() => Component);
+    });
+  }, []);
+
+  if (!WidgetComponent) {
+    return <div style={{ color: '#888' }}>Loading Remote...</div>;
+  }
+
+  return <WidgetComponent />;
 }
 
 // ============================================================================
-// 4. TEST HARNESS (Manual Clicks - Matching the Leaky Test Structure)
+// 4. PAGE DEFAULT EXPORT (Valid React Component)
 // ============================================================================
 export default function ManualOptimizedTest() {
   const [showComponent, setShowComponent] = useState(true);
@@ -81,7 +99,6 @@ export default function ManualOptimizedTest() {
         {showComponent ? (
           <Suspense fallback={<div style={{ color: '#888' }}>Loading Remote...</div>}>
             <OptimizedRemoteComponent />
-            {/* <div>Hello World</div> */}
           </Suspense>
         ) : (
           <div style={{ color: '#aaa' }}>[Component Unmounted]</div>
