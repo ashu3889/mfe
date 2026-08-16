@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Ensure public directory exists so Docker COPY never fails
+# Ensure public directory exists
 RUN mkdir -p ./public
 
 # Copy source code and build
@@ -18,7 +18,7 @@ FROM node:18-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy necessary files from the builder stage
+# Copy built assets and production node_modules from builder
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
