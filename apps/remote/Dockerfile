@@ -1,24 +1,28 @@
-# Stage 1: Build the app
+# 1. Builder stage
 FROM node:18-alpine AS builder
 WORKDIR /app
+
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
+
+# Ensure public directory exists
+RUN mkdir -p ./public
+
+# Copy source code and build
 COPY . .
 RUN npm run build
 
-# Stage 2: Run Express production server
+# 2. Production runner stage
 FROM node:18-alpine AS runner
 WORKDIR /app
-
 ENV NODE_ENV=production
 
-COPY package*.json ./
-RUN npm ci --only=production
+# Copy necessary files directly from builder stage (no npm ci needed)
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
-# Copy built static files from builder stage
-COPY --from=builder /app/dist ./dist
-# Copy the Express server script
-COPY server.js ./
-
-EXPOSE 80
-CMD ["node", "server.js"]
+EXPOSE 3001
+CMD ["npm", "start"]
