@@ -18,11 +18,11 @@ FROM node:18-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy built assets and production node_modules from builder
+# Copy necessary files directly from builder stage
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-EXPOSE 3000
+EXPOSE 3001
 CMD ["npm", "start"]
