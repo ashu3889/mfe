@@ -16,8 +16,8 @@ jobs:
 
       # 1. Build Shell MFE Image
       - name: Build Shell MFE Docker image
-        run: docker build ./apps/shell --file ./shell/Dockerfile --tag shell-mfe:$(date +%s)
+        run: docker build ./apps/shell --file ./apps/shell/Dockerfile --tag shell-mfe:$(date +%s)
 
       # 2. Build Remote MFE Image
       - name: Build Remote MFE Docker image
-        run: docker build ./apps/remote --file ./remote/Dockerfile --tag remote-mfe:$(date +%s)
+        run: docker build ./apps/remote --file ./apps/remote/Dockerfile --tag remote-mfe:$(date +%s)
