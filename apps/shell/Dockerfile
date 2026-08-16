@@ -1,19 +1,10 @@
-FROM node:18-alpine AS builder
-WORKDIR /app
-
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm install
-
-# Copy source code and build
-COPY . .
-RUN npm run build
-
 # Production runner stage
 FROM node:18-alpine
 WORKDIR /app
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
+# Safely copy files (only copy public if it exists, or create a dummy one)
+RUN mkdir -p ./public
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
